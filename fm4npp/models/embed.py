@@ -35,13 +35,13 @@ class EmbedderAdd(nn.Module):
 
         in_dim = 1  # E, θ, φ, ψ instead of just E
         self.proj = nn.Parameter(torch.randn(in_dim, embed_dim), requires_grad=learnable_projection)
-        self.embed = CoordinateEmbedder(method = pe_method, n_continuous_dim = 3, target_dim = embed_dim, learnable_projection = learnable_projection)
+        self.embed = CoordinateEmbedder(method = pe_method, n_continuous_dim = 2, target_dim = embed_dim, learnable_projection = learnable_projection)
 
     def forward(self, neighborhood):
         B, P, _ = neighborhood.shape
         E = neighborhood[..., 0:1]  # First coordinate as Energy (or time-dependent variable)
         E_embed = torch.matmul(E, self.proj)
-        pos_embed = self.embed(neighborhood[..., 1:4])        
+        pos_embed = self.embed(neighborhood[..., 1:3])        
         out = E_embed + pos_embed
         return out, pos_embed
     
@@ -53,14 +53,14 @@ class EmbedderConcat(nn.Module):
         in_dim = 1  # E, θ, φ, ψ instead of just E
         E_emb_dim = embed_dim // 4
         self.proj = nn.Parameter(torch.randn(in_dim, E_emb_dim), requires_grad=learnable_projection)
-        self.embed = CoordinateEmbedder(method = pe_method, n_continuous_dim = 3, target_dim = embed_dim, learnable_projection = learnable_projection)
+        self.embed = CoordinateEmbedder(method = pe_method, n_continuous_dim = 2, target_dim = embed_dim, learnable_projection = learnable_projection)
         self.proj2 = nn.Parameter(torch.randn(E_emb_dim + embed_dim, embed_dim), requires_grad=learnable_projection)
 
     def forward(self, neighborhood):
         B, P, _ = neighborhood.shape
         E = neighborhood[..., 0:1]  # First coordinate as Energy (or time-dependent variable)
         E_embed = torch.matmul(E, self.proj)
-        pos_embed = self.embed(neighborhood[..., 1:4])        
+        pos_embed = self.embed(neighborhood[..., 1:3])        
         out = torch.cat([E_embed, pos_embed], dim=-1)    
         out = torch.matmul(out, self.proj2)
         return out, pos_embed
@@ -69,10 +69,10 @@ class EmbedderPosOnly(nn.Module):
     def __init__(self, pe_method, embed_dim, learnable_projection = False):
         super(EmbedderPosOnly, self).__init__()
         assert pe_method in ['none', 'ff', 'nerf', 'cpe']
-        self.embed = CoordinateEmbedder(method = pe_method, n_continuous_dim = 3, target_dim = embed_dim, learnable_projection = learnable_projection)
+        self.embed = CoordinateEmbedder(method = pe_method, n_continuous_dim = 2, target_dim = embed_dim, learnable_projection = learnable_projection)
 
     def forward(self, neighborhood):
-        out = self.embed(neighborhood[..., 1:4])       
+        out = self.embed(neighborhood[..., 1:3])       
         return out
         
 class CoordinateEmbedder(nn.Module):
