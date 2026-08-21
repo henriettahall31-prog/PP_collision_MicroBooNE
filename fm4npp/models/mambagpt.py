@@ -1,3 +1,5 @@
+# UPDATED FOR MICROBOONE 
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,7 +30,7 @@ class MambaGPT(nn.Module):
                            nn.Dropout(dropout)) 
              for _ in range(num_layers)]
         )
-        self.output_layer = nn.Linear(embed_dim, klen * 3)
+        self.output_layer = nn.Linear(embed_dim, klen * 2)
         self.norm = RMSNorm(embed_dim)
 
     def change_maskval(self, x, init_val = -100, target_val = 0):
@@ -72,7 +74,7 @@ class Mamba1GPT(nn.Module):
                            nn.Dropout(dropout)) 
              for _ in range(num_layers)]
         )
-        self.output_layer = nn.Linear(embed_dim, klen * 3)
+        self.output_layer = nn.Linear(embed_dim, klen * 2)
         self.norm = RMSNorm(embed_dim)
  
     def change_maskval(self, x, init_val = -100, target_val = 0):
