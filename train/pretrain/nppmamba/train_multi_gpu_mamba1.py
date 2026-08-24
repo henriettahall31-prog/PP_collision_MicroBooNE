@@ -1,3 +1,5 @@
+# UPDATED FOR MICROBOONE
+
 """
 Mamba1 Training Script - Simplified Mamba (no μ-transfer, FP32)
 Uses Mamba1GPT for O(n) complexity with state space model
@@ -110,8 +112,9 @@ class Trainer():
                     f.write("split,step,loss,lr\n")
 
         # Load loss bin weights
-        self.loss_bin = pickle_load('{}/loss_bin_pp.pkl'.format(self.params.stat_dir))
-        self.loss_weight = pickle_load('{}/loss_weight_pp.pkl'.format(self.params.stat_dir))
+        if hasattr(self.params, 'loss_reweight') and self.params.loss_reweight:
+    self.loss_bin = pickle_load('{}/loss_bin_pp.pkl'.format(self.params.stat_dir))
+    self.loss_weight = pickle_load('{}/loss_weight_pp.pkl'.format(self.params.stat_dir))
 
         # Get data loaders
         self.train_data_loader, self.train_sampler, self.valid_data_loader, _ = \
@@ -284,8 +287,8 @@ class Trainer():
             b, c = grouped.size(0), grouped.size(-1)
 
             # Prepare targets
-            targets = grouped.reshape(b, -1, 4)[:, :, 1:].to(self.device)
-            klabel = knearest.reshape(b, -1, self.klen * 3).to(self.device)
+            targets = grouped.reshape(b, -1, 3)[:, :, 1:].to(self.device)
+            klabel = knearest.reshape(b, -1, self.klen * 2).to(self.device)
             grouped = grouped.reshape(b, -1, c).to(self.device)
 
             self.model.zero_grad()
@@ -374,8 +377,8 @@ class Trainer():
         with torch.no_grad():
             for i, (grouped, _, knearest) in enumerate(self.valid_data_loader):
                 b, c = grouped.size(0), grouped.size(-1)
-                targets = grouped.reshape(b, -1, 4)[:, :, 1:].to(self.device)
-                klabel = knearest.reshape(b, -1, self.klen * 3).to(self.device)
+                targets = grouped.reshape(b, -1, 3)[:, :, 1:].to(self.device)
+                klabel = knearest.reshape(b, -1, self.klen * 2).to(self.device)
                 grouped = grouped.reshape(b, -1, c).to(self.device)
 
                 point_pred = self.model(grouped)
