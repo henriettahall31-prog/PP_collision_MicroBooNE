@@ -113,8 +113,8 @@ class Trainer():
 
         # Load loss bin weights
         if hasattr(self.params, 'loss_reweight') and self.params.loss_reweight:
-    self.loss_bin = pickle_load('{}/loss_bin_pp.pkl'.format(self.params.stat_dir))
-    self.loss_weight = pickle_load('{}/loss_weight_pp.pkl'.format(self.params.stat_dir))
+            self.loss_bin = pickle_load('{}/loss_bin_pp.pkl'.format(self.params.stat_dir))
+            self.loss_weight = pickle_load('{}/loss_weight_pp.pkl'.format(self.params.stat_dir))
 
         # Get data loaders
         self.train_data_loader, self.train_sampler, self.valid_data_loader, _ = \
