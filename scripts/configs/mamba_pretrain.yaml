@@ -46,7 +46,7 @@ default: &default
   pe_method: nerf
 
   # === Training Settings ===
-  num_data_workers: 4
+  num_data_workers: 1
   log_to_screen: true
   save_version: microboone_pretrain
 
