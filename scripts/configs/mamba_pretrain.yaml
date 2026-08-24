@@ -1,118 +1,59 @@
+# UPDATED FOR MICROBOONE
 # Mamba Pretraining Configuration
-# Anonymized for publication
 
 # Default configuration (shared across all variants)
 default: &default
-  # === Data Paths (UPDATE THESE) ===
-  data_root: /global/cfs/cdirs/m4722/NPFM/data/pp_12M_mmap  # Directory containing features_train, features_test
-  stat_dir:  /global/homes/d/dpark1/NPFN/PP_collision/fm4npp/datasets/stats         # Directory with normalization statistics
-  checkpoint_dir: /pscratch/sd/d/dpark1/NPFN/test   # Where to save model checkpoints
+  # === Data Paths ===
+  data_root: /scratch/midway3/hhall5/BNB_All_NoWire_00.h5   
+  checkpoint_dir: /scratch/midway3/hhall5/checkpoints
 
   # === Data Configuration ===
-  data_version: dataset_name
-  n_data_idx: 10000000                   # Number of training samples
   limit_data: true
-  limit_size: 10000000
-
-  # === legacy (not used) ===
-  group_size: 8
-  nleave: 1e10
-  order: EPR
+  limit_size: 1000
   len_chunk: 512
-  portion: 0.2
   chunk_training: false
-  return_reg_test: false
-  return_dict: false
-  max_gt_classes: 150
-  voxelize: true
-  space_filling_order: false
-  space_filling_curve: z # hilbert
-  grad_clip_value: 0.1
+
+  # === Flags (kept for compatibility with training script) ===
   rep_aaai: false
   loss_reweight: false
   ablate_loss_scale: false
   save_checkpoint: true
+  grad_clip_value: 0.1
 
   # === Training Configuration ===
-  batch_size: 256                        # Global batch size (distributed across GPUs)
-  local_batch_size: 16                   # Batch size per GPU (256 / 16 GPUs)
-  valid_batch_size: 64
-  local_valid_batch_size: 4
+  batch_size: 32
+  local_batch_size: 4
+  valid_batch_size: 16
+  local_valid_batch_size: 2
 
   # === Optimization ===
-  max_epochs: 10000
+  max_epochs: 1000
   max_lr: 0.0002
   min_lr: 0.00002
-  warmup_steps: 1000
-  n_eval_steps: 1000
-  total_steps: 50000
+  warmup_steps: 500
+  n_eval_steps: 500
+  total_steps: 10000
 
   # === Model Configuration ===
-  base_dim: 256
-  embed_dim: 256
-  klen: 30                               # Sequence context length
+  base_dim: 128
+  embed_dim: 128
+  klen: 30
   dropout: 0.1
   init_std: 0.025
 
   # === Embedding Configuration ===
-  embed_method: add                 # or 'concat'
-  pe_method: nerf                        # Positional encoding: 'nerf' or 'sinusoidal'
+  embed_method: add
+  pe_method: nerf
 
   # === Training Settings ===
-  num_data_workers: 8
+  num_data_workers: 4
   log_to_screen: true
-  save_version: mamba_pretrain
+  save_version: microboone_pretrain
 
 # ============================================================================
-# Mamba 5M Configuration (~4.6M parameters)
+# MicroBooNE Mamba — small config for initial testing
 # ============================================================================
-mamba_5m:
-  <<: *default
-  embed_dim: 256
-  num_layers_backbone: 12
-  d_state: 16                            # State space dimension
-  d_conv: 4                              # Convolutional kernel size
-  expand: 2                              # Expansion factor
-  klen: 30
-  batch_size: 256
-  local_batch_size: 16                   # Adjust based on available GPUs
-  valid_batch_size: 64
-  local_valid_batch_size: 4
-  warmup_steps: 1000
-  total_steps: 50000
-  max_lr: 0.0002
-  min_lr: 0.00002
-  dropout: 0.1
-  save_version: mamba_5m
-
-# ============================================================================
-# Mamba2 5M Configuration (~5.1M parameters)
-# ============================================================================
-mamba2_5m:
-  <<: *default
-  embed_dim: 256
-  num_layers_backbone: 12
-  d_state: 128                           # Larger state space for Mamba2
-  d_conv: 4
-  expand: 2
-  headdim: 64                            # Head dimension for Mamba2
-  ngroups: 1                             # Number of groups
-  klen: 30
-  batch_size: 256
-  local_batch_size: 16
-  valid_batch_size: 64
-  local_valid_batch_size: 4
-  warmup_steps: 1000
-  total_steps: 50000
-  max_lr: 0.0002
-  min_lr: 0.00002
-  dropout: 0.1
-  save_version: mamba2_5m
-
-# ============================================================================
-# Smaller Mamba Configuration for Testing (~1.5M parameters)
-# ============================================================================
-mamba_small:
+mamba_microboone:
   <<: *default
   embed_dim: 128
   num_layers_backbone: 6
@@ -120,13 +61,13 @@ mamba_small:
   d_conv: 4
   expand: 2
   klen: 30
-  batch_size: 128
-  local_batch_size: 8
-  valid_batch_size: 32
+  batch_size: 32
+  local_batch_size: 4
+  valid_batch_size: 16
   local_valid_batch_size: 2
   warmup_steps: 500
-  total_steps: 25000
+  total_steps: 10000
   max_lr: 0.0002
   min_lr: 0.00002
   dropout: 0.1
-  save_version: mamba_small
+  save_version: mamba_microboone
