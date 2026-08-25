@@ -168,8 +168,7 @@ class Trainer():
             weight_decay=0.1,
             betas=(0.9, 0.95)
         )
-        self.scaler = torch.cuda.amp.GradScaler()
-        
+
         if self.world_rank == 0:
             print(f"✅ Using standard AdamW optimizer (no μ-transfer scaling)")
             print(f"   Learning rate: {self.params.min_lr}")
@@ -295,8 +294,7 @@ class Trainer():
             self.model.zero_grad()
 
             # Forward pass (FP32 - no mixed precision)
-            with torch.cuda.amp.autocast():
-                point_pred = self.model(grouped)
+            point_pred = self.model(grouped)
 
             # Handle rep_aaai logic
             if self.params.rep_aaai:
@@ -332,17 +330,16 @@ class Trainer():
                 loss = loss * self.params.ablate_loss_scale_rate
 
             # Backward pass (FP32)
-            self.scaler.scale(loss).backward()
+            loss.backward()
 
             # Gradient clipping
             grad_norm = torch.zeros(1)
             clip_value = self.params.grad_clip_value
             torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=clip_value)
 
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
+            self.optimizer.step()
             self.scheduler.step()
-            
+
             if self.iters % 100 == 0 and torch.cuda.is_available():
                 mem_alloc = torch.cuda.memory_allocated(self.device) / 1e9
                 mem_reserved = torch.cuda.memory_reserved(self.device) / 1e9
@@ -390,8 +387,7 @@ class Trainer():
                 klabel = knearest.reshape(b, -1, self.klen * 2).to(self.device)
                 grouped = grouped.reshape(b, -1, c).to(self.device)
 
-                with torch.cuda.amp.autocast():
-                    point_pred = self.model(grouped)
+                point_pred = self.model(grouped)
 
                 if self.params.rep_aaai:
                     if not self.params.nexttoken:
@@ -463,7 +459,7 @@ class Trainer():
             print(f"Learning rate: {self.params.min_lr}")
             print(f"Total steps: {self.params.total_steps}")
             print("="*80)
-            
+
         if torch.cuda.is_available():
             print(f"GPU: {torch.cuda.get_device_name(0)}")
             print(f"Total GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f}GB")
