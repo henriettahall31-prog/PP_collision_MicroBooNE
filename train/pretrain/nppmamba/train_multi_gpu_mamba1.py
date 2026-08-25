@@ -168,7 +168,8 @@ class Trainer():
             weight_decay=0.1,
             betas=(0.9, 0.95)
         )
-
+        self.scaler = torch.cuda.amp.GradScaler()
+        
         if self.world_rank == 0:
             print(f"✅ Using standard AdamW optimizer (no μ-transfer scaling)")
             print(f"   Learning rate: {self.params.min_lr}")
@@ -294,7 +295,8 @@ class Trainer():
             self.model.zero_grad()
 
             # Forward pass (FP32 - no mixed precision)
-            point_pred = self.model(grouped)
+            with torch.cuda.amp.autocast():
+                point_pred = self.model(grouped)
 
             # Handle rep_aaai logic
             if self.params.rep_aaai:
@@ -330,14 +332,15 @@ class Trainer():
                 loss = loss * self.params.ablate_loss_scale_rate
 
             # Backward pass (FP32)
-            loss.backward()
+            self.scaler.scale(loss).backward()
 
             # Gradient clipping
             grad_norm = torch.zeros(1)
             clip_value = self.params.grad_clip_value
             torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=clip_value)
 
-            self.optimizer.step()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
             self.scheduler.step()
 
             # Logging
@@ -381,7 +384,8 @@ class Trainer():
                 klabel = knearest.reshape(b, -1, self.klen * 2).to(self.device)
                 grouped = grouped.reshape(b, -1, c).to(self.device)
 
-                point_pred = self.model(grouped)
+                with torch.cuda.amp.autocast():
+                    point_pred = self.model(grouped)
 
                 if self.params.rep_aaai:
                     if not self.params.nexttoken:
