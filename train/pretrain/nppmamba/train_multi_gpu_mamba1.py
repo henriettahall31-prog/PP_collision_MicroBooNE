@@ -342,6 +342,12 @@ class Trainer():
             self.scaler.step(self.optimizer)
             self.scaler.update()
             self.scheduler.step()
+            
+            if self.iters % 100 == 0 and torch.cuda.is_available():
+                mem_alloc = torch.cuda.memory_allocated(self.device) / 1e9
+                mem_reserved = torch.cuda.memory_reserved(self.device) / 1e9
+                mem_peak = torch.cuda.max_memory_allocated(self.device) / 1e9
+                print(f'  GPU memory: allocated={mem_alloc:.2f}GB, reserved={mem_reserved:.2f}GB, peak={mem_peak:.2f}GB')
 
             # Logging
             loss_log = '{},{},{},{},{}'.format(
@@ -457,6 +463,10 @@ class Trainer():
             print(f"Learning rate: {self.params.min_lr}")
             print(f"Total steps: {self.params.total_steps}")
             print("="*80)
+            
+        if torch.cuda.is_available():
+            print(f"GPU: {torch.cuda.get_device_name(0)}")
+            print(f"Total GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f}GB")
 
         for epoch in range(self.startEpoch, self.params.max_epochs):
             if self.iters >= self.params.total_steps:
