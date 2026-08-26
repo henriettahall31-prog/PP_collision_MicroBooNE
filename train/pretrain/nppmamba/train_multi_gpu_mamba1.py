@@ -361,7 +361,11 @@ class Trainer():
                 self.log_globalfile('train', self.iters, self.report_loss(loss, dist.is_initialized()), self.scheduler.get_lr()[0])
 
             # Validation every n_eval_steps
+            if self.world_rank == 0 and self.iters % 100 == 0:
+                print(f'[DEBUG] iters={self.iters}, n_eval_steps={self.params.n_eval_steps}, iters%%n_eval_steps={self.iters % self.params.n_eval_steps}')
             if self.iters % self.params.n_eval_steps == 0:
+                if self.world_rank == 0:
+                    print(f'[DEBUG] Triggering validation at iter {self.iters}')
                 tr_time += time.time() - tr_start
                 self.val_one_epoch(tr_time)
                 tr_start = time.time()
