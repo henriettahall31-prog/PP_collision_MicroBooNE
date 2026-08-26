@@ -357,7 +357,7 @@ class Trainer():
 
             if self.world_rank == 0:
                 if self.iters % 100 == 0:
-                    print(f'Iter {self.iters}: loss={self.report_loss(loss, dist.is_initialized()):.4f}')
+                    print(f'[TRAIN] Iter {self.iters}: loss={self.report_loss(loss, dist.is_initialized()):.4f}')
                 self.log_globalfile('train', self.iters, self.report_loss(loss, dist.is_initialized()), self.scheduler.get_lr()[0])
 
             # Validation every n_eval_steps
@@ -433,7 +433,7 @@ class Trainer():
         tolog = 'Time taken {:.2f} sec; with {:.2f} / {:.2f} in tr/val\n'.format(
             time.time() - self.starttime if hasattr(self, 'starttime') else val_time,
             tr_time, val_time)
-        tolog += 'Step = {}, Val loss = {}'.format(self.iters, float(self.logs['val_loss']))
+        tolog += '[VAL] Step = {}, Val loss = {}'.format(self.iters, float(self.logs['val_loss']))
 
         if self.world_rank == 0 and self.log_to_screen:
             print(tolog)
