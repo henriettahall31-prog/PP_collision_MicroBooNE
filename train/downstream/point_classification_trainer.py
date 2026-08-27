@@ -1,3 +1,4 @@
+# UPDATED FOR MICROBOONE
 import numpy as np
 from sklearn.metrics import adjusted_rand_score
 import os, sys, time, shutil, random
@@ -449,14 +450,9 @@ class DownstreamTrainer():
                 pid_class = pid_label_dict["pid_class"]  # B X N tensor with particle class information
                 weak_decay_label_dict = get_weakdecaylabel(mid)
                 weak_decay_class = weak_decay_label_dict["weak_decay_class"]  # B X N tensor with weak decay labels
-                if self.params.task == "pid":
-                    targets = {
-                        'labels': pid_class,  # B X N tensor with particle class information
-                    }
-                elif self.params.task == "nid":
-                    targets = {
-                        'labels': noise_labels,  # B X N tensor with noise id
-                    }
+                targets = {
+                    'labels': pid_class,
+                }
 
                 self.down_optimizer.zero_grad()
                 if pretrain:
@@ -639,8 +635,9 @@ class DownstreamTrainer():
         
 
 
-        self.loss_bin = pickle_load('{}/loss_bin_pp.pkl'.format(self.params.stat_dir))
-        self.loss_weight = pickle_load('{}/loss_weight_pp.pkl'.format(self.params.stat_dir))
+        if hasattr(self.params, 'loss_reweight') and self.params.loss_reweight:
+            self.loss_bin = pickle_load('{}/loss_bin_pp.pkl'.format(self.params.stat_dir))
+            self.loss_weight = pickle_load('{}/loss_weight_pp.pkl'.format(self.params.stat_dir))
         
         for epoch in range(self.startEpoch, self.params.max_epochs):
             self.down_results['epoch'] = epoch
@@ -707,25 +704,11 @@ class DownstreamTrainer():
             b, c = grouped.size(0), grouped.size(-1)
             grouped = grouped.reshape(b, -1, c).to(self.device) # B X N X C
             mask = grouped[..., 0] != -100 # B X N
-            reg = inputdict['reg_target'].to(self.device)  # B X N X 8
-            pid = inputdict['pid_target'].to(self.device)  # B X N tensor containing particle IDs
-            mid = inputdict['mid_target'].to(self.device)  # B X N tensor containing mother IDs
+            pid_class = inputdict['pid_target'].to(self.device)
 
-            trackinfo_noiselabel_dict = get_trackinfo_noiselabel(reg)
-            noise_labels = trackinfo_noiselabel_dict["noise_labels"]
-            pid_label_dict = get_pidlabel(pid)
-            pid_class = pid_label_dict["pid_class"]  # B X N tensor with particle class information
-            weak_decay_label_dict = get_weakdecaylabel(mid)
-            weak_decay_class = weak_decay_label_dict["weak_decay_class"]  # B X N tensor with weak decay labels
-
-            if self.params.task == "pid":
-                targets = {
-                    'labels': pid_class,  # B X N tensor with particle class information
-                }
-            elif self.params.task == "nid":
-                targets = {
-                    'labels': noise_labels,  # B X N tensor with noise id
-                }
+            targets = {
+                'labels': pid_class,
+            }
 
             self.down_optimizer.zero_grad()
             if pretrain:
@@ -781,25 +764,11 @@ class DownstreamTrainer():
                 b, c = grouped.size(0), grouped.size(-1)
                 grouped = grouped.reshape(b, -1, c).to(self.device) # B X N X C
                 mask = grouped[..., 0] != -100 # B X N
-                reg = inputdict['reg_target'].to(self.device)  # B X N X 8
-                pid = inputdict['pid_target'].to(self.device)  # B X N tensor containing particle IDs
-                mid = inputdict['mid_target'].to(self.device)  # B X N tensor containing mother IDs
+                pid_class = inputdict['pid_target'].to(self.device)
 
-                trackinfo_noiselabel_dict = get_trackinfo_noiselabel(reg)
-                noise_labels = trackinfo_noiselabel_dict["noise_labels"]
-                pid_label_dict = get_pidlabel(pid)
-                pid_class = pid_label_dict["pid_class"]  # B X N tensor with particle class information
-                weak_decay_label_dict = get_weakdecaylabel(mid)
-                weak_decay_class = weak_decay_label_dict["weak_decay_class"]  # B X N tensor with weak decay labels
-
-                if self.params.task == "pid":
-                    targets = {
-                        'labels': pid_class,  # B X N tensor with particle class information
-                    }
-                elif self.params.task == "nid":
-                    targets = {
-                        'labels': noise_labels,  # B X N tensor with noise id
-                    }
+                targets = {
+                    'labels': pid_class,
+                }
 
                 self.down_optimizer.zero_grad()
                 if pretrain:
