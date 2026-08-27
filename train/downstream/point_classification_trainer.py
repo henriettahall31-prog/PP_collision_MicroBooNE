@@ -440,16 +440,7 @@ class DownstreamTrainer():
                 b, c = grouped.size(0), grouped.size(-1)
                 grouped = grouped.reshape(b, -1, c).to(self.device) # B X N X C
                 mask = grouped[..., 0] != -100 # B X N
-                reg = inputdict['reg_target'].to(self.device)  # B X N X 8
-                pid = inputdict['pid_target'].to(self.device)  # B X N tensor containing particle IDs
-                mid = inputdict['mid_target'].to(self.device)  # B X N tensor containing mother IDs
-
-                trackinfo_noiselabel_dict = get_trackinfo_noiselabel(reg)
-                noise_labels = trackinfo_noiselabel_dict["noise_labels"]
-                pid_label_dict = get_pidlabel(pid)
-                pid_class = pid_label_dict["pid_class"]  # B X N tensor with particle class information
-                weak_decay_label_dict = get_weakdecaylabel(mid)
-                weak_decay_class = weak_decay_label_dict["weak_decay_class"]  # B X N tensor with weak decay labels
+                pid_class = inputdict['pid_target'].to(self.device)
                 targets = {
                     'labels': pid_class,
                 }
