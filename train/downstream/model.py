@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+
+from fm4npp.models.embed import EmbedderAdd as Embedder
 from fm4npp.models.embed import *
 from fm4npp.models.rmsnorm import RMSNorm
 from fm4npp.models.mamba2 import Mamba2
