@@ -5,7 +5,7 @@ import torch.nn as nn
 from fm4npp.models.embed import EmbedderAdd as Embedder
 from fm4npp.models.embed import *
 from fm4npp.models.rmsnorm import RMSNorm
-from fm4npp.models.mamba2 import Mamba2
+from mamba_ssm.modules.mamba_simple import Mamba as Mamba2
 
 
 
