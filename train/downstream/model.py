@@ -428,7 +428,7 @@ class MambaHead(nn.Module):
         # Noise prediction head go from point embedding
         self.out_mlp = MLPHead(embed_dim, num_output_dim, dropout=dropout)
 
-        self.embedder = Embedder(embed_dim=input_dim)
+        self.embedder = Embedder(pe_method='nerf', embed_dim=input_dim)
         self.weighted_avg_weights = nn.Parameter(torch.ones(num_feature_layers))
 
 
