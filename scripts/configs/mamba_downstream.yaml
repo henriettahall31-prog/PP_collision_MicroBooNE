@@ -1,6 +1,6 @@
 #UPDATED COMPLETELY FOR MICROBOONE
 default: &default
-  data_root: /scratch/midway3/hhall5/BNB_All_NoWire_00.h5
+  data_root: /scratch/midway3/hhall5/BNB_All_NoWire_00.h5?download=1
   checkpoint_dir: /scratch/midway3/hhall5/checkpoints/pid_microboone
   log_file_name: pid_training.log
   
