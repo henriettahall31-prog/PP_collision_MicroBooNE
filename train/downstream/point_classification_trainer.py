@@ -612,6 +612,7 @@ class DownstreamTrainer():
         
         if self.log_to_screen:
             print("Starting training loop...")
+        if not os.path.exists(log_file_path):
             with open(log_file_path, "w") as f:
                 f.write("Epoch\tTrain_Loss\tVal_Loss\tprecision\trecall\taccuracy\tTime\n")
      
@@ -802,7 +803,7 @@ class DownstreamTrainer():
         return avg_loss
 
     def _save_checkpoint(self, filename, epoch, is_best, loss):
-    checkpoint = {
+        checkpoint = {
         'epoch': epoch,
         'model_state_dict': self.down_model.state_dict(),
         'optimizer_state_dict': self.down_optimizer.state_dict(),
