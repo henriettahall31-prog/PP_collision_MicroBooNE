@@ -802,24 +802,28 @@ class DownstreamTrainer():
         return avg_loss
 
     def _save_checkpoint(self, filename, epoch, is_best, loss):
-        checkpoint = {
-            'epoch': epoch,
-            'model_state_dict': self.down_model.state_dict(),
-            'optimizer_state_dict': self.down_optimizer.state_dict(),
-            'scheduler_state_dict': self.down_scheduler.state_dict(),
-            'best_loss': self.best_loss,
-            'current_loss': loss,
-            'params': vars(self.params)  # Save all hyperparameters
-        }
-
-        # Handle DistributedDataParallel wrapper
-        if isinstance(self.down_model, torch.nn.parallel.DistributedDataParallel):
-            checkpoint['model_state_dict'] = self.down_model.module.state_dict()
-
-        torch.save(checkpoint, os.path.join(self.params.checkpoint_dir, filename))
-
-        msg = f"Saved {'best ' if is_best else ''}checkpoint at epoch {epoch} with loss {loss:.4f}"
-        #print(msg) if self.log_to_screen else None
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': self.down_model.state_dict(),
+        'optimizer_state_dict': self.down_optimizer.state_dict(),
+        'scheduler_state_dict': self.down_scheduler.state_dict(),
+        'best_loss': self.best_loss,
+        'current_loss': loss,
+        'params': vars(self.params)
+    }
+    if isinstance(self.down_model, torch.nn.parallel.DistributedDataParallel):
+        checkpoint['model_state_dict'] = self.down_model.module.state_dict()
+    # Save per-epoch checkpoint (atomic write)
+    save_path = os.path.join(self.params.checkpoint_dir, f'ckpt_epoch_{epoch}.pth')
+    tmp_path = save_path + '.tmp'
+    torch.save(checkpoint, tmp_path)
+    os.replace(tmp_path, save_path)
+    # Also save as the standard filename for resume compatibility
+    save_path2 = os.path.join(self.params.checkpoint_dir, filename)
+    tmp_path2 = save_path2 + '.tmp'
+    torch.save(checkpoint, tmp_path2)
+    os.replace(tmp_path2, save_path2)
+    print(f"Saved epoch {epoch} checkpoint ({os.path.getsize(save_path)/1e6:.2f} MB), loss={loss:.4f}")
 
     def load_checkpoint(self, checkpoint_path, inference=False):
         """Load checkpoint with proper device mapping and DDP handling. 
